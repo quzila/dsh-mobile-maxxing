@@ -329,7 +329,7 @@ function assetPath(file) {
  */
 function runPluginUpdate(profile, tag) {
 	return new Promise((resolve, reject) => {
-		const child = spawn("dsh", ["plugin", "--profile", profile, "add", `github:kuraneko1/dsh-mobile-maxxing#${tag}`], {
+		const child = spawn("dsh", ["plugin", "--profile", profile, "add", `github:quzila/dsh-mobile-maxxing#${tag}`], {
 			stdio: ["ignore", "ignore", "pipe"],
 			timeout: 120000,
 		});
@@ -343,8 +343,8 @@ function runPluginUpdate(profile, tag) {
 	});
 }
 
-export const RELEASE_URL = "https://github.com/kuraneko1/dsh-mobile-maxxing/releases";
-const RELEASE_API = "https://api.github.com/repos/kuraneko1/dsh-mobile-maxxing/releases/latest";
+export const RELEASE_URL = "https://github.com/quzila/dsh-mobile-maxxing/releases";
+const RELEASE_API = "https://api.github.com/repos/quzila/dsh-mobile-maxxing/releases/latest";
 
 export function compareReleaseVersions(current, latest) {
   const parse = (value) => /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(value)?.slice(1).map(Number);

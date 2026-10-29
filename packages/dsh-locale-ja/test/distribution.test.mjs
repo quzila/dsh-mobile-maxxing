@@ -385,8 +385,11 @@ test('documented release attaches only current artifacts, not retained old tarba
 	const markdown = JSON.parse(fs.readFileSync(path.join(copy, 'packages/dsh-md-rendering/package.json'), 'utf8'));
 	assert.deepEqual(JSON.parse(fs.readFileSync(fake.log, 'utf8')), [
 		'release', 'create', 'v' + rootManifest.version,
+		'--repo', 'quzila/dsh-mobile-maxxing',
 		'dist/' + tarballName(rootManifest), 'dist/dsh-mobile-maxxing.tgz',
-		'dist/' + tarballName(markdown), 'dist/' + tarballName(manifest),
+		'dist/' + tarballName(markdown),
+		'dist/' + tarballName(JSON.parse(fs.readFileSync(path.join(copy, 'packages/dsh-bounded-memory/package.json'), 'utf8'))),
+		'dist/' + tarballName(manifest),
 	]);
 	assert.equal(fs.readFileSync(old, 'utf8'), 'keep old file');
 });

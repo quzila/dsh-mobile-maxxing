@@ -1,5 +1,7 @@
 # dsh-mobile-maxxing — `dsh-mobile-maxxing`
 
+> quzila のフォーク版です。v1.1.0 の導入手順は [ドラフト PR #1](https://github.com/quzila/dsh-mobile-maxxing/pull/1) の実機検証とリリース後に使用できます。
+
 DSH（DeepSeek Harness）の Web UI をスマホで使い倒すための統合プラグインです。
 PWA・通知・モバイルUXを1パッケージにまとめています。
 CJK表示の修正は、PC 側の描画を変えない方針のため別パッケージ `rdsh-markdown-cjk` に分離しています。
@@ -13,7 +15,7 @@ CJK表示の修正は、PC 側の描画を変えない方針のため別パッ�
 
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 # DSH を再起動して読み込む（例: systemctl --user restart dsh-web.service）
 ```
 
@@ -23,7 +25,7 @@ dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
 ```json
 {
   "dependencies": {
-    "dsh-mobile-maxxing": "https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-mobile-maxxing-1.0.0.tgz"
+    "dsh-mobile-maxxing": "https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-mobile-maxxing-1.1.0.tgz"
   },
   "dsh": {
     "profile": {
@@ -98,7 +100,7 @@ plugin and no external npm package.
 
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 # then restart DSH to load it (e.g. systemctl --user restart dsh-web.service)
 ```
 
@@ -108,7 +110,7 @@ dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
 ```json
 {
   "dependencies": {
-    "dsh-mobile-maxxing": "https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-mobile-maxxing-1.0.0.tgz"
+    "dsh-mobile-maxxing": "https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-mobile-maxxing-1.1.0.tgz"
   },
   "dsh": {
     "profile": {

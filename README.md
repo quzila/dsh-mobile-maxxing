@@ -1,9 +1,11 @@
 # dsh-mobile-maxxing
 
+> **quzila のフォーク:** iPad 幅のサイドバー修正と、T2 Code / Hermes Agent から選んだ軽量機能を追加しています。現在の変更は [ドラフト PR #1](https://github.com/quzila/dsh-mobile-maxxing/pull/1) で公開中です。以下のフォーク版 v1.1.0 の導入手順は、実機検証後のリリースから使えます。[変更範囲](docs/external-harness-integration.md)
+
 DeepSeek Harness（DSH）の Web UI を、スマートフォンとタブレットで快適に使うためのプラグイン群です。
 PWA、モバイルレイアウト、通知、Markdown 表、日本語 UI を、必要なものだけ導入できます。
 
-**[最新リリース v1.0.0](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[リリースノート](RELEASE-NOTES-v1.0.0.md)** · **[English](README.en.md)**
+**[元版 v1.0.0](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[元版のリリースノート](RELEASE-NOTES-v1.0.0.md)** · **[English](README.en.md)**
 
 - モバイル本体は素の DSH にそのまま導入でき、通知用の外部ライブラリも不要です。
 - 画面幅ではなく端末を判定するため、狭い PC ウィンドウやタッチ対応 Windows PC をモバイル扱いしません。
@@ -14,7 +16,7 @@ PWA、モバイルレイアウト、通知、Markdown 表、日本語 UI を、�
 
 | コンポーネント | 役割 | 現在の版 | ソース |
 | --- | --- | --- | --- |
-| `dsh-mobile-maxxing` | PWA、通知、モバイル UX | 1.0.0 | このリポジトリ |
+| `dsh-mobile-maxxing` | PWA、通知、モバイル UX | 1.1.0（フォークの開発版） | このリポジトリ |
 | `dsh-md-rendering` | モバイルの Markdown 表表示 | 0.1.3 | [kuraneko1/dsh-md-rendering](https://github.com/kuraneko1/dsh-md-rendering) / [`packages/dsh-md-rendering`](packages/dsh-md-rendering) |
 | `dsh-locale-ja` | 65名前空間・2915キーの日本語 UI | 0.1.1 | [kuraneko1/dsh-locale-ja](https://github.com/kuraneko1/dsh-locale-ja) / [`packages/dsh-locale-ja`](packages/dsh-locale-ja) |
 
@@ -37,22 +39,22 @@ CJK の自動リンク修正は、PC の描画を変えない方針のため、�
 次の1つのインストール用URLから導入できます。
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/kuraneko1/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | node --input-type=module
+curl -fsSL https://raw.githubusercontent.com/quzila/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | node --input-type=module
 ```
 
-既定では `web` プロファイルへ、本体と日本語化は各リポジトリの `main`、表表示は `v1.0.0` の `0.1.3` 成果物を導入します。
+既定では `web` プロファイルへ、本体はこのフォークの `v1.1.0`、日本語化は元版の `main`、表表示はこのフォークの `v1.1.0` の `0.1.3` 成果物を導入します。
 導入後は DSH を再起動し、ブラウザを再読み込みしてください。
 
 別のプロファイルを使う場合:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/kuraneko1/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | DSH_PROFILE=web-mobile node --input-type=module
+curl -fsSL https://raw.githubusercontent.com/quzila/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | DSH_PROFILE=web-mobile node --input-type=module
 ```
 
 ### 本体だけを導入
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 ```
 
 ### 日本語 UI だけを追加
@@ -64,7 +66,7 @@ dsh plugin --profile web add github:kuraneko1/dsh-locale-ja
 ### Markdown 表だけを追加
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-md-rendering-0.1.3.tgz
+dsh plugin --profile web add https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-md-rendering-0.1.3.tgz
 ```
 
 `dsh plugin --profile web add` は依存と bundle の両方を更新します。`cd ~/.dsh/profiles/web` は不要です。
@@ -163,7 +165,7 @@ v1.0.0 では、通知の信頼性と安全性も強化しています。
 | 環境変数 | 用途 | 既定 |
 | --- | --- | --- |
 | `DSH_PROFILE` | 導入先プロファイル | `web` |
-| `DSH_BUNDLE_TAG` | 本体を固定する Git ref と、表 tarball を含むリリースタグ | `v1.0.0`（本体は `main`） |
+| `DSH_BUNDLE_TAG` | 本体を固定する Git ref と、表 tarball を含むリリースタグ | `v1.1.0` |
 | `DSH_BUNDLE_BASE_URL` | 表 tarball のダウンロード元 | 指定タグの GitHub Releases |
 | `DSH_LOCALE_REF` | 日本語化を固定する Git ref | `main` |
 | `DSH_MD_VERSION` | 表パッケージの版 | `0.1.3` |
@@ -172,7 +174,7 @@ v1.0.0 では、通知の信頼性と安全性も強化しています。
 
 ```sh
 DSH_PROFILE=web-mobile \
-DSH_BUNDLE_TAG=v1.0.0 \
+DSH_BUNDLE_TAG=v1.1.0 \
 DSH_LOCALE_REF=main \
 DSH_MD_VERSION=0.1.3 \
   node scripts/install-mobile-bundle.mjs
@@ -232,6 +234,7 @@ node scripts/pack-all.mjs
 packages/dsh-mobile-maxxing/  本体の host / client / service worker / tests
 packages/dsh-md-rendering/    独立した Markdown 表プラグイン
 packages/dsh-locale-ja/       日本語辞書と生成物
+packages/dsh-bounded-memory/ 任意の小容量メモリプラグイン
 scripts/                     インストーラーとパッキング
 tools/                       日本語辞書の生成・検証
 ```
@@ -249,14 +252,16 @@ dsh plugin --profile web add link:/path/to/dsh-mobile-maxxing
 export DSH_RELEASE_TAG="v$(node -p "require('./package.json').version")" # 別タグにする場合は変更
 node scripts/pack-all.mjs --require-locale && \
 gh release create "$DSH_RELEASE_TAG" \
+  --repo quzila/dsh-mobile-maxxing \
   "dist/dsh-mobile-maxxing-$(node -p "require('./package.json').version").tgz" \
   "dist/dsh-mobile-maxxing.tgz" \
   "dist/dsh-md-rendering-$(node -p "require('./packages/dsh-md-rendering/package.json').version").tgz" \
+  "dist/dsh-bounded-memory-$(node -p "require('./packages/dsh-bounded-memory/package.json').version").tgz" \
   "dist/dsh-locale-ja-$(node -p "require('./packages/dsh-locale-ja/package.json').version").tgz"
 ```
 
 `DSH_RELEASE_TAG` は tarball 内の案内URLと GitHub リリースタグの両方に使われます。
-`dist/` 内の過去の成果物は保持されますが、リリースには今回の4ファイルだけを添付します。日本語化の検証に失敗した場合は公開しません。
+`dist/` 内の過去の成果物は保持されますが、リリースには今回の5ファイルだけを添付します。日本語化の検証に失敗した場合は公開しません。小容量メモリは成果物に含まれますが、自動導入はされません。
 README の版付きURLは `pack-all` が更新します。版なしURLを再利用して pnpm のキャッシュ問題を起こさないでください。
 
 ## 貢献者

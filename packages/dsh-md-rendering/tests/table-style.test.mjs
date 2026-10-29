@@ -76,7 +76,7 @@ test('mobile registers a stylesheet only inside the mobile chat', () => {
 
 test('one installer URL installs three independent components', () => {
   const installer = readFileSync(new URL('../../../scripts/install-mobile-bundle.mjs', import.meta.url), 'utf8');
-  assert.match(installer, /github:kuraneko1\/dsh-mobile-maxxing/);
+  assert.match(installer, /github:quzila\/dsh-mobile-maxxing/);
   assert.match(installer, /DSH_MD_VERSION/);
   assert.match(installer, /github:kuraneko1\/dsh-locale-ja/);
   assert.match(installer, /\["plugin", "--profile", profile, "add", \.\.\.packages\]/);
@@ -92,7 +92,7 @@ test('installer pins specified mobile and locale refs independently', (t) => {
   const script = fileURLToPath(new URL('../../../scripts/install-mobile-bundle.mjs', import.meta.url));
   const run = spawnSync(process.execPath, [script], { env, encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);
-  assert.deepEqual(JSON.parse(run.stdout), ['plugin', '--profile', 'isolated', 'add', 'github:kuraneko1/dsh-mobile-maxxing#v0.8.0', 'https://example.test/v0.8.0/dsh-md-rendering-0.1.3.tgz', 'github:kuraneko1/dsh-locale-ja#locale-ref']);
+  assert.deepEqual(JSON.parse(run.stdout), ['plugin', '--profile', 'isolated', 'add', 'github:quzila/dsh-mobile-maxxing#v0.8.0', 'https://example.test/v0.8.0/dsh-md-rendering-0.1.3.tgz', 'github:kuraneko1/dsh-locale-ja#locale-ref']);
   env.DSH_MD_VERSION = '0.1.2';
   const overridden = spawnSync(process.execPath, [script], { env, encoding: 'utf8' });
   assert.equal(overridden.status, 0, overridden.stderr);
@@ -100,7 +100,7 @@ test('installer pins specified mobile and locale refs independently', (t) => {
   delete env.DSH_BUNDLE_TAG; delete env.DSH_LOCALE_REF; delete env.DSH_BUNDLE_BASE_URL; delete env.DSH_MD_VERSION;
   const defaults = spawnSync(process.execPath, [script], { env, encoding: 'utf8' });
   assert.equal(defaults.status, 0, defaults.stderr);
-  assert.deepEqual(JSON.parse(defaults.stdout).slice(4), ['github:kuraneko1/dsh-mobile-maxxing', 'https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-md-rendering-0.1.3.tgz', 'github:kuraneko1/dsh-locale-ja']);
+  assert.deepEqual(JSON.parse(defaults.stdout).slice(4), ['github:quzila/dsh-mobile-maxxing#v1.1.0', 'https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-md-rendering-0.1.3.tgz', 'github:kuraneko1/dsh-locale-ja']);
 });
 
 test('bundle exports its client and distribution resources', () => {

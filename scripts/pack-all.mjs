@@ -4,10 +4,11 @@
  * The release attaches these tarballs, and each package's README points at
  * them, so the file names have to be predictable: `<name>-<version>.tgz`.
  *
- * Three artifacts exist:
+ * Four packages exist:
  *
  * - the mobile package (the repository root), always packed;
  * - the independent Markdown table package, always packed;
+ * - the optional bounded-memory package, always packed but never installed by the mobile package;
  * - the optional Japanese locale package, packed only when its generated
  *   translation-status.json reports the complete 65 namespaces / 2915 keys
  *   with zero English fallback. An incomplete locale is refused loudly: the
@@ -16,6 +17,7 @@
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
+import { realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -94,7 +96,7 @@ function main() {
 		// Keep the install commands on the version just packed: a version-free install
 		// URL is cached by pnpm, so the docs must point at the versioned one.
 		const releaseTag = process.env.DSH_RELEASE_TAG ?? `v${mobile.version}`;
-		const url = `https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/${releaseTag}/${mobile.file}`;
+		const url = `https://github.com/quzila/dsh-mobile-maxxing/releases/download/${releaseTag}/${mobile.file}`;
 		for (const doc of [join(root, "README.md"), join(root, "packages", mobile.name, "README.md")]) {
 			let text;
 			try {
@@ -103,7 +105,7 @@ function main() {
 				continue;
 			}
 			const updated = text.replace(
-				new RegExp(`https://github\\.com/kuraneko1/dsh-mobile-maxxing/releases/download/v[^/]+/${mobile.name}[\\w.\\-]*\\.tgz`, "g"),
+				new RegExp(`https://github\\.com/(?:kuraneko1|quzila)/dsh-mobile-maxxing/releases/download/v[^/]+/${mobile.name}[\\w.\\-]*\\.tgz`, "g"),
 				url,
 			);
 			if (updated !== text) {
@@ -124,6 +126,10 @@ function main() {
 		const markdownDir = join(root, "packages", "dsh-md-rendering");
 		const markdownManifest = JSON.parse(readFileSync(join(markdownDir, "package.json"), "utf8"));
 		packed.push(packDirectory(markdownDir, markdownManifest, staging));
+
+		const memoryDir = join(root, "packages", "dsh-bounded-memory");
+		const memoryManifest = JSON.parse(readFileSync(join(memoryDir, "package.json"), "utf8"));
+		packed.push(packDirectory(memoryDir, memoryManifest, staging));
 
 		let localeStatus;
 		try {
@@ -156,7 +162,7 @@ function main() {
 			if (process.argv.includes("--require-locale")) process.exitCode = 1;
 		}
 
-		if (packed.length < 3 && existsSync(dist) && readdirSync(dist).some((file) => /^dsh-locale-ja-.*\.tgz$/.test(file))) {
+		if (!packed.some((item) => item.name === "dsh-locale-ja") && existsSync(dist) && readdirSync(dist).some((file) => /^dsh-locale-ja-.*\.tgz$/.test(file))) {
 			console.log("Existing locale artifacts in dist/ were preserved; remove or archive them before packing an incomplete locale.");
 			process.exitCode = 1;
 		}
@@ -203,4 +209,4 @@ function main() {
 	}
 }
 
-if (process.argv[1] !== undefined && pathToFileURL(process.argv[1]).href === import.meta.url) main();
+if (process.argv[1] !== undefined && pathToFileURL(realpathSync(process.argv[1])).href === import.meta.url) main();
