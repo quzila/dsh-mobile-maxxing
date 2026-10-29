@@ -244,6 +244,15 @@ export const COPY = {
 		"mux.input.current.enterSends": "Currently: Enter sends, Shift+Enter adds a newline.",
 		"mux.input.current.enterNewline": "Currently: Enter adds a newline. Send with the send button (Shift+Enter also adds a newline).",
 		"mux.liveSpeed.title": "Output speed (estimated from stream deltas)",
+		"promptLink.copied": "Link copied",
+		"promptLink.copyFailed": "Could not copy link",
+		"promptLink.incoming": "Linked draft",
+		"promptLink.cleaned": "Linked draft (hidden characters removed)",
+		"promptLink.apply": "Use draft",
+		"promptLink.replace": "Replace draft",
+		"promptLink.dismiss": "Dismiss",
+		"promptLink.copyTitle": "Copy a link that opens this draft",
+		"promptLink.copy": "Copy link",
 		"mux.liveSpeed.aria": "Estimated speed {speed} tok/s",
 
 		// --- session frame palette ------------------------------------------
@@ -563,6 +572,15 @@ export const COPY = {
 		"mux.input.current.enterSends": "現在: Enter で送信、Shift+Enter で改行。",
 		"mux.input.current.enterNewline": "現在: Enter で改行。送信は送信ボタンから（Shift+Enter も改行）。",
 		"mux.liveSpeed.title": "出力速度（ストリーム差分からの概算）",
+		"promptLink.copied": "リンクをコピーしました",
+		"promptLink.copyFailed": "リンクをコピーできませんでした",
+		"promptLink.incoming": "リンクの下書き",
+		"promptLink.cleaned": "非表示文字を除いたリンクの下書き",
+		"promptLink.apply": "下書きに入れる",
+		"promptLink.replace": "下書きを置き換える",
+		"promptLink.dismiss": "閉じる",
+		"promptLink.copyTitle": "現在の下書きを開くリンクをコピー",
+		"promptLink.copy": "リンクをコピー",
 		"mux.liveSpeed.aria": "推定速度 {speed} tok/s",
 
 		// --- session frame palette ------------------------------------------

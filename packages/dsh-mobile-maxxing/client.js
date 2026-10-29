@@ -12662,6 +12662,26 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
     let wantedSession = "";
     let wantedUntil = 0;
     let sessionOpener = null;
+    let pendingPromptLink = null;
+
+    /** A shared link is a draft only; it cannot send or change permissions. */
+    function promptLinkFromUrl() {
+      try {
+        const url = new URL(location.href);
+        const original = url.searchParams.get("prompt");
+        if (original === null) return;
+        const sessionId = url.searchParams.get("session") || "";
+        url.searchParams.delete("prompt");
+        history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        if (original.length === 0 || original.length > 8000) return;
+        // Hidden directional and zero-width characters can conceal instructions.
+        const clean = original.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, "");
+        if (clean.trim() === "") return;
+        pendingPromptLink = { text: clean, sessionId, changed: clean !== original };
+      } catch {
+        // An invalid URL must not block the DSH composer.
+      }
+    }
 
     /**
      * Ask for one session to be opened.
@@ -13245,6 +13265,40 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       }, `≈ ${speed} tok/s`);
     }
 
+    function PromptLinkDock({ sessionId, useInput, inputActions }) {
+      const draft = useInput((state) => state?.draft ?? "");
+      const [status, setStatus] = useState("");
+      const [revision, setRevision] = useState(0);
+      const incoming = pendingPromptLink;
+      const offer = incoming !== null && (incoming.sessionId === "" || incoming.sessionId === sessionId);
+      if (!phone() || !sessionId || typeof inputActions?.setDraft !== "function") return null;
+      const copy = async () => {
+        if (draft === "" || draft.length > 8000) return;
+        try {
+          const url = new URL(location.href);
+          url.searchParams.set("session", sessionId);
+          url.searchParams.set("prompt", draft);
+          await navigator.clipboard.writeText(url.href);
+          setStatus(t("promptLink.copied"));
+        } catch {
+          setStatus(t("promptLink.copyFailed"));
+        }
+      };
+      const clearOffer = () => {
+        pendingPromptLink = null;
+        setRevision(revision + 1);
+      };
+      return h("span", { className: "rdsh-prompt-link-dock" },
+        offer ? h("span", { className: "rdsh-prompt-link-offer" },
+          h("span", null, t(incoming.changed ? "promptLink.cleaned" : "promptLink.incoming"), ": ", incoming.text.slice(0, 60), incoming.text.length > 60 ? "…" : ""),
+          h("button", { type: "button", onClick: () => { inputActions.setDraft(incoming.text); clearOffer(); } }, t(draft === "" ? "promptLink.apply" : "promptLink.replace")),
+          h("button", { type: "button", onClick: clearOffer }, t("promptLink.dismiss")),
+        ) : null,
+        draft === "" ? null : h("button", { type: "button", disabled: draft.length > 8000, onClick: () => void copy(), title: t("promptLink.copyTitle") }, t("promptLink.copy")),
+        status === "" ? null : h("span", { role: "status" }, status),
+      );
+    }
+
     // ---------------------------------------------------------------------
     // Styles
     //
@@ -13406,6 +13460,11 @@ html[data-rdsh-hide-settings] [data-rdsh-setting-hidden] { display: none !import
 }
 
 .rdsh-mux-live-speed { color: var(--dsw-alias-label-secondary, #a1a1aa); font-size: 11px; white-space: nowrap; }
+.rdsh-prompt-link-dock { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; font-size: 11px; }
+.rdsh-prompt-link-dock button { border: 0; border-radius: 5px; padding: 3px 6px; background: var(--dsw-alias-fill-l2, rgba(255,255,255,.10)); color: inherit; font: inherit; cursor: pointer; }
+.rdsh-prompt-link-dock button:disabled { opacity: .45; cursor: default; }
+.rdsh-prompt-link-offer { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; max-width: min(100%, 600px); }
+.rdsh-prompt-link-offer > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 25ch; }
 /* #59: the drawer button follows the notch inset instead of a fixed 8px. */
 .rdsh-mux-fab {
   position: fixed; left: calc(env(safe-area-inset-left, 0px) + 8px); top: calc(env(safe-area-inset-top, 0px) + 8px);
@@ -15150,6 +15209,7 @@ html[data-rdsh-native-gap][data-rdsh-safe-bottom] #root { padding-bottom: 0 !imp
         // screen, and reports a tap the same way. `?session=` covers the cold
         // start, where no worker message can arrive before the page renders.
         navigator.serviceWorker?.addEventListener("message", onWorkerMessage);
+        promptLinkFromUrl();
         const bootSession = sessionFromUrl();
         if (bootSession !== "") requestSession(bootSession);
         document.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
@@ -15628,6 +15688,12 @@ html[data-rdsh-native-gap][data-rdsh-safe-bottom] #root { padding-bottom: 0 !imp
           order: 2,
           inject: (sessionId) => ({ sessionId }),
         }, LiveSpeed));
+        ctx.slots.inject("conversation.composer.dock", () => ctx.slots.register({
+          name: "conversation.composer.dock",
+          id: "rdsh-mobile-ux-prompt-link",
+          order: 3,
+          inject: (sessionId) => ({ sessionId }),
+        }, PromptLinkDock));
         ctx.slots.inject("settings.section", () => ctx.slots.register({
           name: "settings.section",
           id: "mobile-ux",

@@ -275,6 +275,7 @@ function bootClient({
 	services = {},
 	globals = null,
 	slotsEntries = null,
+	onRegister = null,
 	log = console,
 } = {}) {
 	let definition;
@@ -420,11 +421,12 @@ function bootClient({
 			entries(name) {
 				return typeof slotsEntries === "function" ? slotsEntries(name) : undefined;
 			},
-			register() {
+			register(options, component) {
 				if (failFirstSlot) {
 					failFirstSlot = false;
 					throw new Error("first slot registration failed");
 				}
+				onRegister?.(options, component);
 				return () => {};
 			},
 		},
@@ -477,6 +479,49 @@ test("the browser module registers and boots without a ReferenceError", () => {
 		booted = bootClient();
 	}, "the module body must evaluate and apply must not throw a ReferenceError");
 	assert.equal(booted.definition.id, "dsh-mobile-maxxing");
+});
+
+test("a shared prompt link offers a cleaned draft and never sends it automatically", async () => {
+	let dock;
+	let applied;
+	let copied;
+	const historyUrls = [];
+	const pageLocation = { href: "https://example.test/?session=s-1&prompt=Hello%E2%80%8B%20world" };
+	const react = {
+		createElement: (type, props, ...children) => ({ type, props, children }),
+		useState: (initial) => [initial, () => {}],
+		useEffect() {},
+	};
+	bootClient({
+		mode: "mobile",
+		lang: "ja",
+		copy: COPY,
+		globals: {
+			location: pageLocation,
+			history: { state: { saved: true }, replaceState: (_state, _title, url) => { historyUrls.push(url); pageLocation.href = new URL(url, pageLocation.href).href; } },
+		},
+		navigator: { clipboard: { writeText: async (value) => { copied = value; } } },
+		requireImpl: (name) => name === "react" ? react : stub(),
+		onRegister: (options, component) => {
+			if (options.id === "rdsh-mobile-ux-prompt-link") dock = component;
+		},
+	});
+	assert.equal(typeof dock, "function");
+	assert.equal(historyUrls.some((url) => url.includes("prompt=")), false, "the URL keeps the untrusted prompt");
+	const render = (draft) => dock({ sessionId: "s-1", useInput: (select) => select({ draft }), inputActions: { setDraft: (text) => { applied = text; } } });
+	const buttons = (node) => node === null || typeof node !== "object" ? [] : [
+		...(node.type === "button" ? [node] : []),
+		...(node.children ?? []).flatMap(buttons),
+	];
+	const offered = buttons(render("existing draft"));
+	assert.equal(applied, undefined, "opening a link must not submit or replace the draft");
+	assert.equal(offered.some((button) => button.children.includes("下書きを置き換える")), true);
+	offered.find((button) => button.children.includes("下書きを置き換える")).props.onClick();
+	assert.equal(applied, "Hello world", "hidden characters are removed before use");
+	await buttons(render("new task")).find((button) => button.children.includes("リンクをコピー")).props.onClick();
+	const link = new URL(copied);
+	assert.equal(link.searchParams.get("session"), "s-1");
+	assert.equal(link.searchParams.get("prompt"), "new task");
 });
 
 /**
