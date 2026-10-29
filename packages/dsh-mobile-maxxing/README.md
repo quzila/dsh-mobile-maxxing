@@ -146,7 +146,7 @@ local-tarball install.
 | Installable PWA | Add to home screen, offline launch, update notice |
 | Notifications | In-app banner while the app is on screen, Web Push otherwise |
 | Notification sounds | Five synthesised presets with a volume control; no audio files ship |
-| Mobile layout | Sidebar becomes a drawer, settings open in one tap, code wraps by default (toggle available) |
+| Mobile layout | Sidebar becomes a drawer on phones and a docked column at tablet widths; settings open in one tap, code wraps by default (toggle available) |
 | Code review | Wrap is on by default; header actions collapse into a "…" menu; native open-in-app buttons are hidden |
 | Light / dark theme | Follows the host tokens; a per-device palette can differ from the PC |
 | Chat view (this device) | Work-details verbosity, collapse timing, busy Enter and performance detail overridden for this browser only |

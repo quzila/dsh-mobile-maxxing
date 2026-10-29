@@ -1894,6 +1894,10 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       return DEVICE_MODE === "mobile";
     }
 
+    function tabletDock() {
+      return phone() && window.innerWidth >= 768;
+    }
+
     function readEnterToSend() {
       try {
         return localStorage.getItem(ENTER_TO_SEND_KEY) === "1";
@@ -9823,7 +9827,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
           }
         }
       }
-      if (drawerOpen) {
+      if (drawerOpen && !tabletDock()) {
         // The drawer owns the screen while it is open, so a leftward swipe
         // closes it from anywhere on it: a session row, the dimmed chat behind
         // it, the right edge. It must never pull the preview over the list.
@@ -11025,7 +11029,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       // workspace's "+") opens a blank session behind the drawer, so the drawer
       // closes just as it does for a tapped session row. Match by label, not
       // by hashed class; a session row never carries one of these buttons.
-      if (phone() && isNewSessionButton(target)) {
+      if (phone() && !tabletDock() && isNewSessionButton(target)) {
         setTimeout(closeDrawer, 0);
         return;
       }
@@ -11034,7 +11038,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       // after the app has handled the click, so the route is not left under an
       // open drawer (and the FAB comes back). A desktop sidebar is never
       // touched: this branch is mode-gated.
-      if (phone() && isPanelRouteButton(target)) {
+      if (phone() && !tabletDock() && isPanelRouteButton(target)) {
         setTimeout(closeDrawer, 0);
         return;
       }
@@ -11052,8 +11056,8 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
         }
         if (controlInsideRow(target)) return;
         if (tapCandidate !== null) tapCandidate.fired = true;
-        // Close after the row's own handler has opened the session.
-        setTimeout(closeDrawer, 0);
+        // A docked tablet keeps the list beside the newly selected session.
+        if (!tabletDock()) setTimeout(closeDrawer, 0);
         return;
       }
 
@@ -13882,17 +13886,17 @@ html[data-rdsh-anim="none"] [data-rdsh-running] [data-rdsh-session-title]::after
   [data-rdsh-frame] [data-rdsh-center-col] { grid-column: 2 !important; }
   [data-rdsh-frame] [data-rdsh-rightbar-col] { grid-column: 3 !important; }
   [data-rdsh-frame][data-rightbar-fullscreen] { grid-template-columns: 0 minmax(0, 1fr) 0 !important; }
-  /* #72: mobile at 768px and up is a tablet, not a phone. Upstream already
-     fullscreens below 768px and docks at or above it, so the drawer keeps the
-     first column at 0 while the right track is reserved at the panel's own
-     measured width. The conversation keeps upstream's 400px minimum and the
-     dock never shrinks below upstream's 300px floor. The value is published by
-     syncRightPanelOpen; 45% is upstream's first-open default and only a
-     fallback for the frame before that measurement lands. User fullscreen
-     keeps the phone sheet above, hence the :not(). */
+  /* Tablet widths keep the session list in a real grid column while open.
+     The stock right panel can still dock next to the conversation. */
   @media (min-width: 768px) {
+    html[data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
+      grid-template-columns: 280px minmax(0, 1fr) 0 !important;
+    }
     html[data-rdsh-rightpanel-open] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
       grid-template-columns: 0 minmax(400px, 1fr) minmax(300px, var(--rdsh-rightbar-width, 45%)) !important;
+    }
+    html[data-rdsh-rightpanel-open][data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
+      grid-template-columns: 280px minmax(0, 1fr) minmax(300px, var(--rdsh-rightbar-width, 45%)) !important;
     }
     /* The tablet is wide enough for a user to leave fullscreen; keep the exit
        control that the phone hides. Split stays hidden everywhere: this plugin
@@ -13933,6 +13937,24 @@ html[data-rdsh-anim="none"] [data-rdsh-running] [data-rdsh-session-title]::after
   html[data-rdsh-drawer="open"] .rdsh-mux-backdrop { display: block; opacity: 1; pointer-events: auto; }
   .rdsh-mux-fab { display: flex; }
   html[data-rdsh-drawer="open"] .rdsh-mux-fab { display: none; }
+
+  @media (min-width: 768px) {
+    html[data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) [data-rdsh-sidebar] {
+      position: relative !important;
+      inset: auto !important;
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      width: 100% !important;
+      max-width: none !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      transform: none !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+    }
+    html[data-rdsh-drawer="open"]:has([data-rdsh-frame]:not([data-rightbar-fullscreen])) .rdsh-mux-backdrop { display: none !important; }
+  }
 
   /* Keyboard up: the app is exactly the visible area (see fitVisualViewport).
      body is also a containing block for every fixed layer below it: the

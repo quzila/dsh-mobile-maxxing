@@ -549,11 +549,42 @@ test("tapping a New session button on a phone closes the drawer", () => {
 	// Reviewed ja labels: the stock sidebar action and a workspace's "+".
 	assert.equal(drawerClosedAfterTapping("新しいセッションを作成"), true, "ja sidebar button");
 	assert.equal(drawerClosedAfterTapping("my-repo で新しいセッション"), true, "ja workspace button");
+	assert.equal(drawerClosedAfterTapping("New session", { narrow: false, mode: "mobile" }), false, "an iPad new session closed the dock");
 });
 
 test("other buttons leave the drawer open, and so does a wide screen", () => {
 	assert.equal(drawerClosedAfterTapping("Session actions"), false);
 	assert.equal(drawerClosedAfterTapping("New session", { narrow: false, mode: "desktop" }), false);
+});
+
+test("a session switch keeps an iPad dock open but closes a phone drawer", () => {
+	function closesAfterSessionTap(narrow) {
+		const timers = [];
+		const clickHandlers = [];
+		let collapsePresses = 0;
+		const collapse = element();
+		collapse.click = () => { collapsePresses += 1; };
+		const frame = element();
+		const root = element();
+		root.firstElementChild = { firstElementChild: frame };
+		bootClient({
+			mode: "mobile", narrow,
+			schedule: (callback) => timers.push(callback),
+			configureDocument(doc) {
+				doc.getElementById = (id) => id === "root" ? root : null;
+				doc.querySelector = (selector) => selector.includes("Collapse sidebar") ? collapse : null;
+				doc.addEventListener = (type, handler) => { if (type === "click") clickHandlers.push(handler); };
+			},
+		});
+		timers.length = 0;
+		const row = element();
+		const target = { closest: (selector) => selector === '[data-row-key^="session:"]' ? row : null };
+		clickHandlers[0]({ target, preventDefault() {}, stopImmediatePropagation() {} });
+		for (const callback of timers.splice(0)) callback();
+		return collapsePresses;
+	}
+	assert.equal(closesAfterSessionTap(true), 1);
+	assert.equal(closesAfterSessionTap(false), 0);
 });
 
 /**
@@ -1730,6 +1761,8 @@ test("tapping Plugins or Automation tasks closes the phone drawer, never a deskt
 	// screen; on a desktop-width window the stock sidebar is not ours to close.
 	assert.equal(drawerClosedAfterTapping("Plugins"), true, "Plugins left the drawer open");
 	assert.equal(drawerClosedAfterTapping("Automation tasks"), true, "Automation tasks left the drawer open");
+	assert.equal(drawerClosedAfterTapping("Plugins", { narrow: false, mode: "mobile" }), false, "an iPad plugin route closed the dock");
+	assert.equal(drawerClosedAfterTapping("Automation tasks", { narrow: false, mode: "mobile" }), false, "an iPad automation route closed the dock");
 	assert.equal(drawerClosedAfterTapping("Plugins", { narrow: false, mode: "desktop" }), false, "a desktop sidebar was closed");
 	assert.equal(drawerClosedAfterTapping("Automation tasks", { narrow: false, mode: "desktop" }), false, "a desktop sidebar was closed");
 	// Reviewed ja labels for the same two folded rows.
