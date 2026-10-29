@@ -1,5 +1,7 @@
 # dsh-mobile-maxxing — `dsh-mobile-maxxing`
 
+> quzila のフォーク版です。[v1.1.0 リリース](https://github.com/quzila/dsh-mobile-maxxing/releases/tag/v1.1.0)に iPad 幅のサイドバーと下書き共有リンクの改善を含みます。
+
 DSH（DeepSeek Harness）の Web UI をスマホで使い倒すための統合プラグインです。
 PWA・通知・モバイルUXを1パッケージにまとめています。
 CJK表示の修正は、PC 側の描画を変えない方針のため別パッケージ `rdsh-markdown-cjk` に分離しています。
@@ -13,7 +15,7 @@ CJK表示の修正は、PC 側の描画を変えない方針のため別パッ�
 
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 # DSH を再起動して読み込む（例: systemctl --user restart dsh-web.service）
 ```
 
@@ -23,7 +25,7 @@ dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
 ```json
 {
   "dependencies": {
-    "dsh-mobile-maxxing": "https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-mobile-maxxing-1.0.0.tgz"
+    "dsh-mobile-maxxing": "https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-mobile-maxxing-1.1.0.tgz"
   },
   "dsh": {
     "profile": {
@@ -98,7 +100,7 @@ plugin and no external npm package.
 
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 # then restart DSH to load it (e.g. systemctl --user restart dsh-web.service)
 ```
 
@@ -108,7 +110,7 @@ dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
 ```json
 {
   "dependencies": {
-    "dsh-mobile-maxxing": "https://github.com/kuraneko1/dsh-mobile-maxxing/releases/download/v1.0.0/dsh-mobile-maxxing-1.0.0.tgz"
+    "dsh-mobile-maxxing": "https://github.com/quzila/dsh-mobile-maxxing/releases/download/v1.1.0/dsh-mobile-maxxing-1.1.0.tgz"
   },
   "dsh": {
     "profile": {
@@ -146,7 +148,8 @@ local-tarball install.
 | Installable PWA | Add to home screen, offline launch, update notice |
 | Notifications | In-app banner while the app is on screen, Web Push otherwise |
 | Notification sounds | Five synthesised presets with a volume control; no audio files ship |
-| Mobile layout | Sidebar becomes a drawer, settings open in one tap, code wraps by default (toggle available) |
+| Mobile layout | Sidebar becomes a drawer on phones and a docked column at tablet widths; settings open in one tap, code wraps by default (toggle available) |
+| Prompt links | Copy a link to the current session and draft; opening it offers the text for review without sending it |
 | Code review | Wrap is on by default; header actions collapse into a "…" menu; native open-in-app buttons are hidden |
 | Light / dark theme | Follows the host tokens; a per-device palette can differ from the PC |
 | Chat view (this device) | Work-details verbosity, collapse timing, busy Enter and performance detail overridden for this browser only |

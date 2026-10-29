@@ -78,7 +78,7 @@ test("the nested manifest and the README install URLs match the root version", a
 
 	const readme = await readFile(join(packageDir, "README.md"), "utf8");
 	const installs = [...readme.matchAll(
-		/https:\/\/github\.com\/kuraneko1\/dsh-mobile-maxxing\/releases\/download\/v([^\/\s"']+)\/([^\s"'#?]+\.tgz)/g,
+		/https:\/\/github\.com\/quzila\/dsh-mobile-maxxing\/releases\/download\/v([^\/\s"']+)\/([^\s"'#?]+\.tgz)/g,
 	)];
 	assert.ok(installs.length >= 1, "the implementation README has to show a versioned install URL");
 	for (const [, version, file] of installs) {

@@ -1894,6 +1894,10 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       return DEVICE_MODE === "mobile";
     }
 
+    function tabletDock() {
+      return phone() && window.innerWidth >= 768;
+    }
+
     function readEnterToSend() {
       try {
         return localStorage.getItem(ENTER_TO_SEND_KEY) === "1";
@@ -9823,7 +9827,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
           }
         }
       }
-      if (drawerOpen) {
+      if (drawerOpen && !tabletDock()) {
         // The drawer owns the screen while it is open, so a leftward swipe
         // closes it from anywhere on it: a session row, the dimmed chat behind
         // it, the right edge. It must never pull the preview over the list.
@@ -11025,7 +11029,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       // workspace's "+") opens a blank session behind the drawer, so the drawer
       // closes just as it does for a tapped session row. Match by label, not
       // by hashed class; a session row never carries one of these buttons.
-      if (phone() && isNewSessionButton(target)) {
+      if (phone() && !tabletDock() && isNewSessionButton(target)) {
         setTimeout(closeDrawer, 0);
         return;
       }
@@ -11034,7 +11038,7 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       // after the app has handled the click, so the route is not left under an
       // open drawer (and the FAB comes back). A desktop sidebar is never
       // touched: this branch is mode-gated.
-      if (phone() && isPanelRouteButton(target)) {
+      if (phone() && !tabletDock() && isPanelRouteButton(target)) {
         setTimeout(closeDrawer, 0);
         return;
       }
@@ -11052,8 +11056,8 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
         }
         if (controlInsideRow(target)) return;
         if (tapCandidate !== null) tapCandidate.fired = true;
-        // Close after the row's own handler has opened the session.
-        setTimeout(closeDrawer, 0);
+        // A docked tablet keeps the list beside the newly selected session.
+        if (!tabletDock()) setTimeout(closeDrawer, 0);
         return;
       }
 
@@ -12658,6 +12662,26 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
     let wantedSession = "";
     let wantedUntil = 0;
     let sessionOpener = null;
+    let pendingPromptLink = null;
+
+    /** A shared link is a draft only; it cannot send or change permissions. */
+    function promptLinkFromUrl() {
+      try {
+        const url = new URL(location.href);
+        const original = url.searchParams.get("prompt");
+        if (original === null) return;
+        const sessionId = url.searchParams.get("session") || "";
+        url.searchParams.delete("prompt");
+        history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        if (original.length === 0 || original.length > 8000) return;
+        // Hidden directional and zero-width characters can conceal instructions.
+        const clean = original.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, "");
+        if (clean.trim() === "") return;
+        pendingPromptLink = { text: clean, sessionId, changed: clean !== original };
+      } catch {
+        // An invalid URL must not block the DSH composer.
+      }
+    }
 
     /**
      * Ask for one session to be opened.
@@ -13241,6 +13265,40 @@ html[data-rdsh-device-mode="mobile"] .dsh-mobile-maxxing-install-actions { displ
       }, `≈ ${speed} tok/s`);
     }
 
+    function PromptLinkDock({ sessionId, useInput, inputActions }) {
+      const draft = useInput((state) => state?.draft ?? "");
+      const [status, setStatus] = useState("");
+      const [revision, setRevision] = useState(0);
+      const incoming = pendingPromptLink;
+      const offer = incoming !== null && (incoming.sessionId === "" || incoming.sessionId === sessionId);
+      if (!phone() || !sessionId || typeof inputActions?.setDraft !== "function") return null;
+      const copy = async () => {
+        if (draft === "" || draft.length > 8000) return;
+        try {
+          const url = new URL(location.href);
+          url.searchParams.set("session", sessionId);
+          url.searchParams.set("prompt", draft);
+          await navigator.clipboard.writeText(url.href);
+          setStatus(t("promptLink.copied"));
+        } catch {
+          setStatus(t("promptLink.copyFailed"));
+        }
+      };
+      const clearOffer = () => {
+        pendingPromptLink = null;
+        setRevision(revision + 1);
+      };
+      return h("span", { className: "rdsh-prompt-link-dock" },
+        offer ? h("span", { className: "rdsh-prompt-link-offer" },
+          h("span", null, t(incoming.changed ? "promptLink.cleaned" : "promptLink.incoming"), ": ", incoming.text.slice(0, 60), incoming.text.length > 60 ? "…" : ""),
+          h("button", { type: "button", onClick: () => { inputActions.setDraft(incoming.text); clearOffer(); } }, t(draft === "" ? "promptLink.apply" : "promptLink.replace")),
+          h("button", { type: "button", onClick: clearOffer }, t("promptLink.dismiss")),
+        ) : null,
+        draft === "" ? null : h("button", { type: "button", disabled: draft.length > 8000, onClick: () => void copy(), title: t("promptLink.copyTitle") }, t("promptLink.copy")),
+        status === "" ? null : h("span", { role: "status" }, status),
+      );
+    }
+
     // ---------------------------------------------------------------------
     // Styles
     //
@@ -13402,6 +13460,11 @@ html[data-rdsh-hide-settings] [data-rdsh-setting-hidden] { display: none !import
 }
 
 .rdsh-mux-live-speed { color: var(--dsw-alias-label-secondary, #a1a1aa); font-size: 11px; white-space: nowrap; }
+.rdsh-prompt-link-dock { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; font-size: 11px; }
+.rdsh-prompt-link-dock button { border: 0; border-radius: 5px; padding: 3px 6px; background: var(--dsw-alias-fill-l2, rgba(255,255,255,.10)); color: inherit; font: inherit; cursor: pointer; }
+.rdsh-prompt-link-dock button:disabled { opacity: .45; cursor: default; }
+.rdsh-prompt-link-offer { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; max-width: min(100%, 600px); }
+.rdsh-prompt-link-offer > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 25ch; }
 /* #59: the drawer button follows the notch inset instead of a fixed 8px. */
 .rdsh-mux-fab {
   position: fixed; left: calc(env(safe-area-inset-left, 0px) + 8px); top: calc(env(safe-area-inset-top, 0px) + 8px);
@@ -13882,17 +13945,17 @@ html[data-rdsh-anim="none"] [data-rdsh-running] [data-rdsh-session-title]::after
   [data-rdsh-frame] [data-rdsh-center-col] { grid-column: 2 !important; }
   [data-rdsh-frame] [data-rdsh-rightbar-col] { grid-column: 3 !important; }
   [data-rdsh-frame][data-rightbar-fullscreen] { grid-template-columns: 0 minmax(0, 1fr) 0 !important; }
-  /* #72: mobile at 768px and up is a tablet, not a phone. Upstream already
-     fullscreens below 768px and docks at or above it, so the drawer keeps the
-     first column at 0 while the right track is reserved at the panel's own
-     measured width. The conversation keeps upstream's 400px minimum and the
-     dock never shrinks below upstream's 300px floor. The value is published by
-     syncRightPanelOpen; 45% is upstream's first-open default and only a
-     fallback for the frame before that measurement lands. User fullscreen
-     keeps the phone sheet above, hence the :not(). */
+  /* Tablet widths keep the session list in a real grid column while open.
+     The stock right panel can still dock next to the conversation. */
   @media (min-width: 768px) {
+    html[data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
+      grid-template-columns: 280px minmax(0, 1fr) 0 !important;
+    }
     html[data-rdsh-rightpanel-open] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
       grid-template-columns: 0 minmax(400px, 1fr) minmax(300px, var(--rdsh-rightbar-width, 45%)) !important;
+    }
+    html[data-rdsh-rightpanel-open][data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) {
+      grid-template-columns: 280px minmax(0, 1fr) minmax(300px, var(--rdsh-rightbar-width, 45%)) !important;
     }
     /* The tablet is wide enough for a user to leave fullscreen; keep the exit
        control that the phone hides. Split stays hidden everywhere: this plugin
@@ -13933,6 +13996,24 @@ html[data-rdsh-anim="none"] [data-rdsh-running] [data-rdsh-session-title]::after
   html[data-rdsh-drawer="open"] .rdsh-mux-backdrop { display: block; opacity: 1; pointer-events: auto; }
   .rdsh-mux-fab { display: flex; }
   html[data-rdsh-drawer="open"] .rdsh-mux-fab { display: none; }
+
+  @media (min-width: 768px) {
+    html[data-rdsh-drawer="open"] [data-rdsh-frame]:not([data-rightbar-fullscreen]) [data-rdsh-sidebar] {
+      position: relative !important;
+      inset: auto !important;
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      width: 100% !important;
+      max-width: none !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      transform: none !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+    }
+    html[data-rdsh-drawer="open"]:has([data-rdsh-frame]:not([data-rightbar-fullscreen])) .rdsh-mux-backdrop { display: none !important; }
+  }
 
   /* Keyboard up: the app is exactly the visible area (see fitVisualViewport).
      body is also a containing block for every fixed layer below it: the
@@ -15128,6 +15209,7 @@ html[data-rdsh-native-gap][data-rdsh-safe-bottom] #root { padding-bottom: 0 !imp
         // screen, and reports a tap the same way. `?session=` covers the cold
         // start, where no worker message can arrive before the page renders.
         navigator.serviceWorker?.addEventListener("message", onWorkerMessage);
+        promptLinkFromUrl();
         const bootSession = sessionFromUrl();
         if (bootSession !== "") requestSession(bootSession);
         document.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
@@ -15606,6 +15688,12 @@ html[data-rdsh-native-gap][data-rdsh-safe-bottom] #root { padding-bottom: 0 !imp
           order: 2,
           inject: (sessionId) => ({ sessionId }),
         }, LiveSpeed));
+        ctx.slots.inject("conversation.composer.dock", () => ctx.slots.register({
+          name: "conversation.composer.dock",
+          id: "rdsh-mobile-ux-prompt-link",
+          order: 3,
+          inject: (sessionId) => ({ sessionId }),
+        }, PromptLinkDock));
         ctx.slots.inject("settings.section", () => ctx.slots.register({
           name: "settings.section",
           id: "mobile-ux",

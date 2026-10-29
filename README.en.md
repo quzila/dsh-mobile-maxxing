@@ -1,17 +1,19 @@
 # dsh-mobile-maxxing
 
+> **quzila fork:** The iPad sidebar fix and two small features inspired by T2 Code and Hermes Agent are included in the [v1.1.0 release](https://github.com/quzila/dsh-mobile-maxxing/releases/tag/v1.1.0).
+
 > [日本語の README はこちら](README.md)
 
 
 Make the DeepSeek Harness Web UI useful on phones and tablets without changing the stock desktop experience.
 The release contains three independent components: mobile UX and notifications, mobile Markdown tables, and an optional Japanese locale.
 
-**[v1.0.0 release](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[Japanese release notes](RELEASE-NOTES-v1.0.0.md)**
+**[Fork release notes](RELEASE-NOTES-v1.1.0.md)** · **[Upstream v1.0.0 release](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)**
 
 ## Install all three components
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/kuraneko1/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | node --input-type=module
+curl -fsSL https://raw.githubusercontent.com/quzila/dsh-mobile-maxxing/main/scripts/install-mobile-bundle.mjs | node --input-type=module
 ```
 
 The installer targets the `web` profile by default. Restart DSH and reload the browser after installation.
@@ -20,7 +22,7 @@ Set `DSH_PROFILE` to use another profile. `DSH_BUNDLE_TAG`, `DSH_LOCALE_REF`, an
 To install only the mobile package:
 
 ```sh
-dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing
+dsh plugin --profile web add github:quzila/dsh-mobile-maxxing#v1.1.0
 ```
 
 ## Highlights

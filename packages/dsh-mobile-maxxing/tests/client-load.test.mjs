@@ -275,6 +275,7 @@ function bootClient({
 	services = {},
 	globals = null,
 	slotsEntries = null,
+	onRegister = null,
 	log = console,
 } = {}) {
 	let definition;
@@ -420,11 +421,12 @@ function bootClient({
 			entries(name) {
 				return typeof slotsEntries === "function" ? slotsEntries(name) : undefined;
 			},
-			register() {
+			register(options, component) {
 				if (failFirstSlot) {
 					failFirstSlot = false;
 					throw new Error("first slot registration failed");
 				}
+				onRegister?.(options, component);
 				return () => {};
 			},
 		},
@@ -477,6 +479,49 @@ test("the browser module registers and boots without a ReferenceError", () => {
 		booted = bootClient();
 	}, "the module body must evaluate and apply must not throw a ReferenceError");
 	assert.equal(booted.definition.id, "dsh-mobile-maxxing");
+});
+
+test("a shared prompt link offers a cleaned draft and never sends it automatically", async () => {
+	let dock;
+	let applied;
+	let copied;
+	const historyUrls = [];
+	const pageLocation = { href: "https://example.test/?session=s-1&prompt=Hello%E2%80%8B%20world" };
+	const react = {
+		createElement: (type, props, ...children) => ({ type, props, children }),
+		useState: (initial) => [initial, () => {}],
+		useEffect() {},
+	};
+	bootClient({
+		mode: "mobile",
+		lang: "ja",
+		copy: COPY,
+		globals: {
+			location: pageLocation,
+			history: { state: { saved: true }, replaceState: (_state, _title, url) => { historyUrls.push(url); pageLocation.href = new URL(url, pageLocation.href).href; } },
+		},
+		navigator: { clipboard: { writeText: async (value) => { copied = value; } } },
+		requireImpl: (name) => name === "react" ? react : stub(),
+		onRegister: (options, component) => {
+			if (options.id === "rdsh-mobile-ux-prompt-link") dock = component;
+		},
+	});
+	assert.equal(typeof dock, "function");
+	assert.equal(historyUrls.some((url) => url.includes("prompt=")), false, "the URL keeps the untrusted prompt");
+	const render = (draft) => dock({ sessionId: "s-1", useInput: (select) => select({ draft }), inputActions: { setDraft: (text) => { applied = text; } } });
+	const buttons = (node) => node === null || typeof node !== "object" ? [] : [
+		...(node.type === "button" ? [node] : []),
+		...(node.children ?? []).flatMap(buttons),
+	];
+	const offered = buttons(render("existing draft"));
+	assert.equal(applied, undefined, "opening a link must not submit or replace the draft");
+	assert.equal(offered.some((button) => button.children.includes("下書きを置き換える")), true);
+	offered.find((button) => button.children.includes("下書きを置き換える")).props.onClick();
+	assert.equal(applied, "Hello world", "hidden characters are removed before use");
+	await buttons(render("new task")).find((button) => button.children.includes("リンクをコピー")).props.onClick();
+	const link = new URL(copied);
+	assert.equal(link.searchParams.get("session"), "s-1");
+	assert.equal(link.searchParams.get("prompt"), "new task");
 });
 
 /**
@@ -549,11 +594,42 @@ test("tapping a New session button on a phone closes the drawer", () => {
 	// Reviewed ja labels: the stock sidebar action and a workspace's "+".
 	assert.equal(drawerClosedAfterTapping("新しいセッションを作成"), true, "ja sidebar button");
 	assert.equal(drawerClosedAfterTapping("my-repo で新しいセッション"), true, "ja workspace button");
+	assert.equal(drawerClosedAfterTapping("New session", { narrow: false, mode: "mobile" }), false, "an iPad new session closed the dock");
 });
 
 test("other buttons leave the drawer open, and so does a wide screen", () => {
 	assert.equal(drawerClosedAfterTapping("Session actions"), false);
 	assert.equal(drawerClosedAfterTapping("New session", { narrow: false, mode: "desktop" }), false);
+});
+
+test("a session switch keeps an iPad dock open but closes a phone drawer", () => {
+	function closesAfterSessionTap(narrow) {
+		const timers = [];
+		const clickHandlers = [];
+		let collapsePresses = 0;
+		const collapse = element();
+		collapse.click = () => { collapsePresses += 1; };
+		const frame = element();
+		const root = element();
+		root.firstElementChild = { firstElementChild: frame };
+		bootClient({
+			mode: "mobile", narrow,
+			schedule: (callback) => timers.push(callback),
+			configureDocument(doc) {
+				doc.getElementById = (id) => id === "root" ? root : null;
+				doc.querySelector = (selector) => selector.includes("Collapse sidebar") ? collapse : null;
+				doc.addEventListener = (type, handler) => { if (type === "click") clickHandlers.push(handler); };
+			},
+		});
+		timers.length = 0;
+		const row = element();
+		const target = { closest: (selector) => selector === '[data-row-key^="session:"]' ? row : null };
+		clickHandlers[0]({ target, preventDefault() {}, stopImmediatePropagation() {} });
+		for (const callback of timers.splice(0)) callback();
+		return collapsePresses;
+	}
+	assert.equal(closesAfterSessionTap(true), 1);
+	assert.equal(closesAfterSessionTap(false), 0);
 });
 
 /**
@@ -1730,6 +1806,8 @@ test("tapping Plugins or Automation tasks closes the phone drawer, never a deskt
 	// screen; on a desktop-width window the stock sidebar is not ours to close.
 	assert.equal(drawerClosedAfterTapping("Plugins"), true, "Plugins left the drawer open");
 	assert.equal(drawerClosedAfterTapping("Automation tasks"), true, "Automation tasks left the drawer open");
+	assert.equal(drawerClosedAfterTapping("Plugins", { narrow: false, mode: "mobile" }), false, "an iPad plugin route closed the dock");
+	assert.equal(drawerClosedAfterTapping("Automation tasks", { narrow: false, mode: "mobile" }), false, "an iPad automation route closed the dock");
 	assert.equal(drawerClosedAfterTapping("Plugins", { narrow: false, mode: "desktop" }), false, "a desktop sidebar was closed");
 	assert.equal(drawerClosedAfterTapping("Automation tasks", { narrow: false, mode: "desktop" }), false, "a desktop sidebar was closed");
 	// Reviewed ja labels for the same two folded rows.
