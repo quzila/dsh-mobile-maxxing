@@ -1,0 +1,16 @@
+{
+  "name": "dsh-bounded-memory",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "Optional, bounded persistent memory for DeepSeek Harness using its existing AGENTS.md loader",
+  "exports": { ".": "./index.js" },
+  "files": ["index.js", "README.md", "cordis.patch.yml", "LICENSE"],
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "engines": { "node": ">=22" },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "meta": {
+    "title": "Bounded memory",
+    "description": "Save a small amount of user-approved memory for future DSH sessions. No background service."
+  }
+}

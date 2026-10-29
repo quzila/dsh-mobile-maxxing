@@ -102,6 +102,10 @@ dsh plugin --profile web add https://github.com/kuraneko1/dsh-mobile-maxxing/rel
 
 端末モードは幅ではなく端末から判定します。モバイル UI が有効なときだけ、専用のスタイルとイベントを構築します。
 
+### 任意の軽量機能
+
+- [dsh-bounded-memory](packages/dsh-bounded-memory/README.md): ユーザーが明示的に保存を依頼した短いメモリを、DSH が既に読む `AGENTS.md` へ反映します。別の常駐サービスは使いません。
+
 ### この端末だけの設定
 
 設定 → モバイル では、次の項目をブラウザごとに変更できます。
