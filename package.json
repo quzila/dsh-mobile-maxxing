@@ -64,10 +64,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kuraneko1/dsh-mobile-maxxing.git"
+    "url": "git+https://github.com/quzila/dsh-mobile-maxxing.git"
   },
-  "homepage": "https://github.com/kuraneko1/dsh-mobile-maxxing#readme",
+  "homepage": "https://github.com/quzila/dsh-mobile-maxxing#readme",
   "bugs": {
-    "url": "https://github.com/kuraneko1/dsh-mobile-maxxing/issues"
+    "url": "https://github.com/quzila/dsh-mobile-maxxing/issues"
   }
 }

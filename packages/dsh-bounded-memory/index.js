@@ -32,6 +32,7 @@ function checkStore(value) {
 
 async function readStore(path) {
   try {
+    if ((await lstat(path)).isSymbolicLink()) throw new Error("memory store must not be a symlink");
     const raw = await readFile(path, "utf8");
     if (raw.length > 10000) throw new Error("memory store is too large");
     return checkStore(JSON.parse(raw));
@@ -39,6 +40,15 @@ async function readStore(path) {
     if (error?.code === "ENOENT") return { version: 1, user: [], memory: [] };
     throw error;
   }
+}
+
+function storedBlock(original) {
+  const start = original.indexOf(START);
+  const end = original.indexOf(END);
+  if ((start < 0) !== (end < 0) || (start >= 0 && (end < start || original.indexOf(START, start + START.length) >= 0 || original.indexOf(END, end + END.length) >= 0))) {
+    throw new Error("AGENTS.md has an ambiguous bounded-memory section");
+  }
+  return start < 0 ? null : original.slice(start, end + END.length);
 }
 
 function renderBlock(store) {
@@ -54,13 +64,10 @@ function renderBlock(store) {
 }
 
 function mergeInstructions(original, store) {
+  const block = storedBlock(original);
+  if (block === null) return `${original.trimEnd()}${original.trim() ? "\n\n" : ""}${renderBlock(store)}\n`;
   const start = original.indexOf(START);
-  const end = original.indexOf(END);
-  if ((start < 0) !== (end < 0) || (start >= 0 && (end < start || original.indexOf(START, start + START.length) >= 0 || original.indexOf(END, end + END.length) >= 0))) {
-    throw new Error("AGENTS.md has an ambiguous bounded-memory section");
-  }
-  if (start < 0) return `${original.trimEnd()}${original.trim() ? "\n\n" : ""}${renderBlock(store)}\n`;
-  return original.slice(0, start) + renderBlock(store) + original.slice(end + END.length);
+  return original.slice(0, start) + renderBlock(store) + original.slice(start + block.length);
 }
 
 async function atomicWrite(path, content) {
@@ -91,7 +98,15 @@ export async function operate(home, args) {
   if (!["read", "add", "remove"].includes(action)) throw new Error("action must be read, add or remove");
   const storePath = join(home, "memories", "bounded-memory.json");
   const instructionsPath = join(home, "AGENTS.md");
+  const storeExists = await lstat(storePath).then(() => true, (error) => {
+    if (error?.code === "ENOENT") return false;
+    throw error;
+  });
   const store = await readStore(storePath);
+  const currentInstructions = await readInstructions(instructionsPath);
+  const currentBlock = storedBlock(currentInstructions);
+  if (storeExists && currentBlock !== renderBlock(store)) throw new Error("bounded memory differs between store and AGENTS.md; resolve before editing");
+  if (!storeExists && currentBlock !== null) throw new Error("bounded memory store is missing; resolve before editing");
   if (action !== "read") {
     const content = normalizeEntry(args.content);
     if (action === "add" && !store[target].includes(content)) store[target].push(content);
@@ -101,7 +116,7 @@ export async function operate(home, args) {
       store[target].splice(index, 1);
     }
     if (store[target].join("\n").length > LIMITS[target]) throw new Error(`${target} memory limit exceeded`);
-    const instructions = mergeInstructions(await readInstructions(instructionsPath), store);
+    const instructions = mergeInstructions(currentInstructions, store);
     await atomicWrite(storePath, `${JSON.stringify(store, null, 2)}\n`);
     await atomicWrite(instructionsPath, instructions);
   }

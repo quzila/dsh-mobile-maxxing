@@ -50,3 +50,20 @@ test("ambiguous managed markers and symlinked AGENTS.md are refused", async () =
   await assert.rejects(operate(home, { action: "add", target: "user", content: "hello" }), /symlink/);
   assert.equal(await readFile(outside, "utf8"), "outside\n");
 }));
+
+test("missing or changed memory data is not silently overwritten", async () => temporaryHome(async (home) => {
+  await operate(home, { action: "add", target: "user", content: "Keep this preference." });
+  const path = join(home, "AGENTS.md");
+  const original = await readFile(path, "utf8");
+  await writeFile(path, original.replace("Keep this preference.", "Changed preference."));
+  await assert.rejects(operate(home, { action: "add", target: "user", content: "Another preference." }), /differs/);
+  assert.match(await readFile(path, "utf8"), /Changed preference/);
+  await writeFile(path, original);
+  const storePath = join(home, "memories", "bounded-memory.json");
+  await rm(storePath);
+  await assert.rejects(operate(home, { action: "add", target: "user", content: "Another preference." }), /store is missing/);
+  const outside = join(home, "outside.json");
+  await writeFile(outside, '{}');
+  await symlink(outside, storePath);
+  await assert.rejects(operate(home, { action: "read", target: "user" }), /symlink/);
+}));
