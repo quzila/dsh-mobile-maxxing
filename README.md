@@ -1,11 +1,11 @@
 # dsh-mobile-maxxing
 
-> **quzila のフォーク:** iPad 幅のサイドバー修正と、T2 Code / Hermes Agent から選んだ軽量機能を追加しています。現在の変更は [ドラフト PR #1](https://github.com/quzila/dsh-mobile-maxxing/pull/1) で公開中です。以下のフォーク版 v1.1.0 の導入手順は、実機検証後のリリースから使えます。[変更範囲](docs/external-harness-integration.md)
+> **quzila のフォーク:** iPad 幅のサイドバー修正と、T2 Code / Hermes Agent から選んだ軽量機能を追加しています。[v1.1.0 リリース](https://github.com/quzila/dsh-mobile-maxxing/releases/tag/v1.1.0) · [変更範囲](docs/external-harness-integration.md)
 
 DeepSeek Harness（DSH）の Web UI を、スマートフォンとタブレットで快適に使うためのプラグイン群です。
 PWA、モバイルレイアウト、通知、Markdown 表、日本語 UI を、必要なものだけ導入できます。
 
-**[元版 v1.0.0](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[元版のリリースノート](RELEASE-NOTES-v1.0.0.md)** · **[English](README.en.md)**
+**[フォーク版リリースノート](RELEASE-NOTES-v1.1.0.md)** · **[元版 v1.0.0](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[English](README.en.md)**
 
 - モバイル本体は素の DSH にそのまま導入でき、通知用の外部ライブラリも不要です。
 - 画面幅ではなく端末を判定するため、狭い PC ウィンドウやタッチ対応 Windows PC をモバイル扱いしません。
@@ -214,7 +214,8 @@ pnpm は URL 単位でキャッシュします。版なし URL の内容だけ�
 - [本体パッケージの README](packages/dsh-mobile-maxxing/README.md)
 - [開発メモ](CONTRIBUTING.md)
 - [実装の参考元](CONTRIBUTING.md#実装の参考元)
-- [v1.0.0 リリースノート](RELEASE-NOTES-v1.0.0.md)
+- [v1.1.0 リリースノート](RELEASE-NOTES-v1.1.0.md)
+- [元版 v1.0.0 リリースノート](RELEASE-NOTES-v1.0.0.md)
 
 ## 開発
 

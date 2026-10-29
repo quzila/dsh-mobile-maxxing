@@ -24,6 +24,8 @@
     "packages/dsh-mobile-maxxing/README.md",
     "cordis.patch.yml",
     "README.md",
+    "RELEASE-NOTES-v1.1.0.md",
+    "docs/external-harness-integration.md",
     "LICENSE"
   ],
   "scripts": {

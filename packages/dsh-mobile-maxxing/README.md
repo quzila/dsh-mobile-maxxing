@@ -1,6 +1,6 @@
 # dsh-mobile-maxxing — `dsh-mobile-maxxing`
 
-> quzila のフォーク版です。v1.1.0 の導入手順は [ドラフト PR #1](https://github.com/quzila/dsh-mobile-maxxing/pull/1) の実機検証とリリース後に使用できます。
+> quzila のフォーク版です。[v1.1.0 リリース](https://github.com/quzila/dsh-mobile-maxxing/releases/tag/v1.1.0)に iPad 幅のサイドバーと下書き共有リンクの改善を含みます。
 
 DSH（DeepSeek Harness）の Web UI をスマホで使い倒すための統合プラグインです。
 PWA・通知・モバイルUXを1パッケージにまとめています。

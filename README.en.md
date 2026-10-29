@@ -1,6 +1,6 @@
 # dsh-mobile-maxxing
 
-> **quzila fork:** The iPad sidebar fix and two small features inspired by T2 Code and Hermes Agent are available in [draft PR #1](https://github.com/quzila/dsh-mobile-maxxing/pull/1). The v1.1.0 install commands below become usable after live device verification and the fork release.
+> **quzila fork:** The iPad sidebar fix and two small features inspired by T2 Code and Hermes Agent are included in the [v1.1.0 release](https://github.com/quzila/dsh-mobile-maxxing/releases/tag/v1.1.0).
 
 > [日本語の README はこちら](README.md)
 
@@ -8,7 +8,7 @@
 Make the DeepSeek Harness Web UI useful on phones and tablets without changing the stock desktop experience.
 The release contains three independent components: mobile UX and notifications, mobile Markdown tables, and an optional Japanese locale.
 
-**[Upstream v1.0.0 release](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)** · **[Upstream Japanese release notes](RELEASE-NOTES-v1.0.0.md)**
+**[Fork release notes](RELEASE-NOTES-v1.1.0.md)** · **[Upstream v1.0.0 release](https://github.com/kuraneko1/dsh-mobile-maxxing/releases/tag/v1.0.0)**
 
 ## Install all three components
 
