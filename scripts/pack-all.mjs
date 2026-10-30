@@ -4,11 +4,12 @@
  * The release attaches these tarballs, and each package's README points at
  * them, so the file names have to be predictable: `<name>-<version>.tgz`.
  *
- * Four packages exist:
+ * Five packages exist:
  *
  * - the mobile package (the repository root), always packed;
  * - the independent Markdown table package, always packed;
  * - the optional bounded-memory package, always packed but never installed by the mobile package;
+ * - the optional conversation-controls package, always packed but never installed by the mobile package;
  * - the optional Japanese locale package, packed only when its generated
  *   translation-status.json reports the complete 65 namespaces / 2915 keys
  *   with zero English fallback. An incomplete locale is refused loudly: the
@@ -130,6 +131,10 @@ function main() {
 		const memoryDir = join(root, "packages", "dsh-bounded-memory");
 		const memoryManifest = JSON.parse(readFileSync(join(memoryDir, "package.json"), "utf8"));
 		packed.push(packDirectory(memoryDir, memoryManifest, staging));
+
+		const controlsDir = join(root, "packages", "dsh-conversation-controls");
+		const controlsManifest = JSON.parse(readFileSync(join(controlsDir, "package.json"), "utf8"));
+		packed.push(packDirectory(controlsDir, controlsManifest, staging));
 
 		let localeStatus;
 		try {

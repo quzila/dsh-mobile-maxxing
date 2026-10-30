@@ -107,6 +107,7 @@ dsh plugin --profile web add https://github.com/quzila/dsh-mobile-maxxing/releas
 ### 任意の軽量機能
 
 - [dsh-bounded-memory](packages/dsh-bounded-memory/README.md): ユーザーが明示的に保存を依頼した短いメモリを、DSH が既に読む `AGENTS.md` へ反映します。別の常駐サービスは使いません。
+- [dsh-conversation-controls](packages/dsh-conversation-controls/README.md): 送信済みのテキストを編集して会話を分岐し、最新の応答から「続きを生成」をワンクリックで送れます。
 
 ### この端末だけの設定
 
@@ -236,6 +237,7 @@ packages/dsh-mobile-maxxing/  本体の host / client / service worker / tests
 packages/dsh-md-rendering/    独立した Markdown 表プラグイン
 packages/dsh-locale-ja/       日本語辞書と生成物
 packages/dsh-bounded-memory/ 任意の小容量メモリプラグイン
+packages/dsh-conversation-controls/ 任意の会話操作プラグイン
 scripts/                     インストーラーとパッキング
 tools/                       日本語辞書の生成・検証
 ```
@@ -258,11 +260,12 @@ gh release create "$DSH_RELEASE_TAG" \
   "dist/dsh-mobile-maxxing.tgz" \
   "dist/dsh-md-rendering-$(node -p "require('./packages/dsh-md-rendering/package.json').version").tgz" \
   "dist/dsh-bounded-memory-$(node -p "require('./packages/dsh-bounded-memory/package.json').version").tgz" \
+  "dist/dsh-conversation-controls-$(node -p "require('./packages/dsh-conversation-controls/package.json').version").tgz" \
   "dist/dsh-locale-ja-$(node -p "require('./packages/dsh-locale-ja/package.json').version").tgz"
 ```
 
 `DSH_RELEASE_TAG` は tarball 内の案内URLと GitHub リリースタグの両方に使われます。
-`dist/` 内の過去の成果物は保持されますが、リリースには今回の5ファイルだけを添付します。日本語化の検証に失敗した場合は公開しません。小容量メモリは成果物に含まれますが、自動導入はされません。
+`dist/` 内の過去の成果物は保持されますが、リリースには今回の6ファイルだけを添付します。日本語化の検証に失敗した場合は公開しません。小容量メモリと会話操作は成果物に含まれますが、自動導入はされません。
 README の版付きURLは `pack-all` が更新します。版なしURLを再利用して pnpm のキャッシュ問題を起こさないでください。
 
 ## 貢献者
